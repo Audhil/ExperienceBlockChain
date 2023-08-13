@@ -8,16 +8,26 @@ class Block {
         this.data = data;
         this.prevHash = prevHash;
         this.hash = '';
+        this.nonce = 0;
     }
 
     calculateHash(){
-        return SHA256(this.index + this.prevHash + this.timestamp+JSON.stringify(this.data)).toString();
+        return SHA256(this.index + this.prevHash + this.timestamp+JSON.stringify(this.data) + this.nonce).toString();
+    }
+
+    mineBlock(difficulty){
+        while(this.hash.substring(0, difficulty) !== Array(difficulty+1).join("0")){
+            this.nonce++;
+            this.hash = this.calculateHash();
+        }
+        log('Blocked Mined: '+this.hash);
     }
 }
 
 class BlockChain{
     constructor(){
         this.chain = [this.createGenesisBlock()];
+        this.difficulty = 4;
     }
 
     createGenesisBlock(){
@@ -30,7 +40,7 @@ class BlockChain{
 
     addBlock(newBlock){
         newBlock.prevHash = this.getLatestBlock().hash;
-        newBlock.hash = newBlock.calculateHash();
+        newBlock.mineBlock(this.difficulty);
         this.chain.push(newBlock);
     }
 
@@ -51,15 +61,20 @@ class BlockChain{
     }
 }
 
+// #1
+// let ddCoin = new BlockChain();
+// ddCoin.addBlock(new Block(1, "22",{amount: 4}))
+// ddCoin.addBlock(new Block(2, "23",{amount: 41}))
+// console.log(JSON.stringify(ddCoin, null, 4));
+// log('Is blockChain valid? '+ddCoin.isChainValid())
+// //  tampering
+// ddCoin.chain[1].data = {blah: '1112'};
+// log('After tampering: Is blockChain valid? '+ddCoin.isChainValid())
+
+// #2
 let ddCoin = new BlockChain();
-ddCoin.addBlock(new Block(1, "22",{amount: 4}))
-ddCoin.addBlock(new Block(2, "23",{amount: 41}))
+log('Mining block 1...')
+ddCoin.addBlock(new Block(1, "22",{amount: 4}));
 
-console.log(JSON.stringify(ddCoin, null, 4));
-
-log('Is blockChain valid? '+ddCoin.isChainValid())
-
-//  tampering
-ddCoin.chain[1].data = {blah: '1112'};
-
-log('After tampering: Is blockChain valid? '+ddCoin.isChainValid())
+log('Mining block 2...')
+ddCoin.addBlock(new Block(2, "23",{amount: 41}));
